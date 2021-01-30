@@ -74,16 +74,16 @@ def accuracy_test(data, target, n_splits=5, stratified=False, outlierScoreAlgori
                 partition, measure = two_symmetric_measure(labels, 0.3, quantifier)
                 values_min.append(np.amin(to_be_aggregated))
                 values_avg.append(np.average(to_be_aggregated))
-                values_owa.append(OWA(to_be_aggregated, quantifier))
+                values_owa.append(owa(to_be_aggregated, quantifier))
                 values_min_without_outliers.append(np.amin(to_be_aggregated_without_outliers))
                 values_avg_without_outliers.append(np.average(to_be_aggregated_without_outliers))
-                values_owa_without_outliers.append(OWA(to_be_aggregated_without_outliers, quantifier))
-                values_fuzzy_removal.append(choquet_fuzzy_removal_measure(to_be_aggregated, weights, np.amin))
-                values_two_sym.append(choquet_k_symmetric_measure(to_be_aggregated, partition, measure))
+                values_owa_without_outliers.append(owa(to_be_aggregated_without_outliers, quantifier))
+                values_fuzzy_removal.append(fuzzy_removal_choquet_integral(to_be_aggregated, weights, np.amin))
+                values_two_sym.append(k_symmetric_choquet_integral(to_be_aggregated, partition, measure))
                 n = len(weights)
                 som = np.sum(weights)
                 po = [(1 - weights[i]) / (n - som) for i in range(n)]
-                values_wowa.append(WOWA(to_be_aggregated, quantifier, po))
+                values_wowa.append(wowa(to_be_aggregated, quantifier, po))
 
             # Classifies it to class for which it has the greatest lower approximation value
             pred_min.append(np.argmax(values_min))
