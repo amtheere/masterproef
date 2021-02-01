@@ -7,10 +7,23 @@ def fuzzy_removal_choquet_integral(function, fuzzy_set, t_norm):
     n = len(function)  # Cardinality of X
     function_arg_sorted = np.argsort(function)
     result = function[function_arg_sorted[0]]
+    to_be_tnormed = []
     for i in range(1, n):
-        a_ast = function_arg_sorted[i:]
-        to_be_tnormed = [fuzzy_set[j] for j in range(n) if j not in a_ast]
+        to_be_tnormed.append(fuzzy_set[function_arg_sorted[i - 1]])
         measure_at_a_ast = t_norm(to_be_tnormed)
+        result += (function[function_arg_sorted[i]] - function[function_arg_sorted[i - 1]]) * measure_at_a_ast
+    return result
+
+
+# Optimized version when using the minimum as the t-norm
+def fuzzy_removal_choquet_integral_min(function, fuzzy_set):
+    n = len(function)  # Cardinality of X
+    function_arg_sorted = np.argsort(function)
+    result = function[function_arg_sorted[0]]
+    to_be_tnormed = []
+    for i in range(1, n):
+        to_be_tnormed.append(fuzzy_set[function_arg_sorted[i - 1]])
+        measure_at_a_ast = np.amin(to_be_tnormed)
         result += (function[function_arg_sorted[i]] - function[function_arg_sorted[i - 1]]) * measure_at_a_ast
     return result
 
@@ -56,23 +69,31 @@ def owa(array, quantifier):
     array = np.array(array)
     array = -1 * np.sort(-1 * array)
     result = 0
-    n = len(array)
-    for i in range(n):
-        result += array[i] * (quantifier((i + 1) / n) - quantifier(i / n))
+    array_length = len(array)
+    for i in range(array_length):
+        result += array[i] * (quantifier((i + 1) / array_length) - quantifier(i / array_length))
     return result
 
 
-def wowa(array, q, p):
+def wowa(array, quantifier, weights):
     array = np.array(array)
-    p = np.array(p)
+    weights = np.array(weights)
     # Indices of sorted array in decreasing order
     sigma = np.argsort(-1 * array)
     array = np.take(array, sigma)
-    p = np.take(p, sigma)
+    weights = np.take(weights, sigma)
     omega = np.zeros(len(array))
     for i in range(len(array)):
-        omega[i] = q(np.sum(p[:i + 1])) - q(np.sum(p[:i]))
+        omega[i] = quantifier(np.sum(weights[:i + 1])) - quantifier(np.sum(weights[:i]))
     return np.dot(array, omega)
+
+
+# Performs WOWA with weights according to quantifier and the outlier_values
+def wowa_outlier(array, quantifier, outlier_values):
+    array_length = len(array)
+    som = np.sum(outlier_values)
+    po = [(1 - outlier_values[i]) / (array_length - som) for i in range(array_length)]
+    return wowa(array, quantifier, po)
 
 
 def vague_quantifier(x, alpha, beta):

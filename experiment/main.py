@@ -1,5 +1,6 @@
 from accuracy_test import accuracy_test
 from sklearn import datasets
+import pandas as pd
 
 '''
 file = "datasets/wifi.psv"

@@ -9,7 +9,8 @@ from aggregation_elements import aggregation_elements, lof_score
 from pyod.models.lof import LOF
 
 
-def accuracy_test(data, target, n_splits=5, stratified=False, outlierScoreAlgorithm=LOF(), balanced=False):
+def accuracy_test(data, target, n_splits=5, stratified=False,
+                  outlierScoreAlgorithm=LOF(), balanced=False):
     # Sets up the cross-validation
     if stratified:
         kf = StratifiedKFold(n_splits=n_splits, shuffle=True)
@@ -29,7 +30,8 @@ def accuracy_test(data, target, n_splits=5, stratified=False, outlierScoreAlgori
     accuracy_rates_two_sym = []
     accuracy_rates_wowa = []
 
-    def quantifier(t): return vague_quantifier(t, 0.2, 1)
+    def quantifier(t):
+        return vague_quantifier(t, 0.2, 1)
 
     for train_index, test_index in kf:
         train_x = np.array([data[i] for i in train_index])
@@ -41,7 +43,7 @@ def accuracy_test(data, target, n_splits=5, stratified=False, outlierScoreAlgori
         outlier_values, outlier_labels = lof_score(train_x, train_y, outlierScoreAlgorithm)
         standard_deviations = np.std(train_x, axis=0)
 
-        # predictions
+        # predictions for the test instances
         pred_min = []
         pred_avg = []
         pred_owa = []
@@ -67,11 +69,11 @@ def accuracy_test(data, target, n_splits=5, stratified=False, outlierScoreAlgori
 
             # Calculates the lower approximations to each class
             for i in range(number_of_classes):
-                # O is the fuzzy outlier set and OL the outlier labels
+                # weights are the outlier scores and labels the outlier labels
                 to_be_aggregated, weights, labels = aggregation_elements(x, train_x, train_y, i, outlier_values,
                                                                          outlier_labels, standard_deviations)
-                to_be_aggregated_without_outliers = [j for i, j in enumerate(to_be_aggregated) if labels[i] == 0]
-                partition, measure = two_symmetric_measure(labels, 0.3, quantifier)
+                to_be_aggregated_without_outliers = [k for j, k in enumerate(to_be_aggregated) if labels[j] == 0]
+
                 values_min.append(np.amin(to_be_aggregated))
                 values_avg.append(np.average(to_be_aggregated))
                 values_owa.append(owa(to_be_aggregated, quantifier))
@@ -79,13 +81,12 @@ def accuracy_test(data, target, n_splits=5, stratified=False, outlierScoreAlgori
                 values_avg_without_outliers.append(np.average(to_be_aggregated_without_outliers))
                 values_owa_without_outliers.append(owa(to_be_aggregated_without_outliers, quantifier))
                 values_fuzzy_removal.append(fuzzy_removal_choquet_integral(to_be_aggregated, weights, np.amin))
-                values_two_sym.append(k_symmetric_choquet_integral(to_be_aggregated, partition, measure))
-                n = len(weights)
-                som = np.sum(weights)
-                po = [(1 - weights[i]) / (n - som) for i in range(n)]
-                values_wowa.append(wowa(to_be_aggregated, quantifier, po))
+                values_wowa.append(wowa_outlier(to_be_aggregated, quantifier, weights))
 
-            # Classifies it to class for which it has the greatest lower approximation value
+                # partition, measure = two_symmetric_measure(labels, 0.3, quantifier)
+                # values_two_sym.append(k_symmetric_choquet_integral(to_be_aggregated, partition, measure))
+
+            # Classifies it to the class for which it has the greatest lower approximation value
             pred_min.append(np.argmax(values_min))
             pred_avg.append(np.argmax(values_avg))
             pred_owa.append(np.argmax(values_owa))
@@ -93,7 +94,7 @@ def accuracy_test(data, target, n_splits=5, stratified=False, outlierScoreAlgori
             pred_avg_without_outliers.append(np.argmax(values_avg_without_outliers))
             pred_min_without_outliers.append(np.argmax(values_min_without_outliers))
             pred_fuzzy_removal.append(np.argmax(values_fuzzy_removal))
-            pred_two_sym.append(np.argmax(values_two_sym))
+            # pred_two_sym.append(np.argmax(values_two_sym))
             pred_wowa.append(np.argmax(values_wowa))
 
         if balanced:
@@ -117,7 +118,7 @@ def accuracy_test(data, target, n_splits=5, stratified=False, outlierScoreAlgori
             accuracy_rates_avg_without_outliers.append(metrics.accuracy_score(test_y, pred_avg_without_outliers))
             accuracy_rates_min_without_outliers.append(metrics.accuracy_score(test_y, pred_min_without_outliers))
             accuracy_rates_fuzzy_removal.append(metrics.accuracy_score(test_y, pred_fuzzy_removal))
-            accuracy_rates_two_sym.append(metrics.accuracy_score(test_y, pred_two_sym))
+            # accuracy_rates_two_sym.append(metrics.accuracy_score(test_y, pred_two_sym))
             accuracy_rates_wowa.append(metrics.accuracy_score(test_y, pred_wowa))
 
     results = [accuracy_rates_min, accuracy_rates_avg,
