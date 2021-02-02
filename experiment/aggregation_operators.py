@@ -4,11 +4,10 @@ import numpy as np
 # Calculates the Choquet integral of "function"
 # with respect to the fuzzy outlier removal measure using fuzzy_set as O and a function t_norm as T
 def fuzzy_removal_choquet_integral(function, fuzzy_set, t_norm):
-    n = len(function)  # Cardinality of X
     function_arg_sorted = np.argsort(function)
     result = function[function_arg_sorted[0]]
     to_be_tnormed = []
-    for i in range(1, n):
+    for i in range(1, len(function)):
         to_be_tnormed.append(fuzzy_set[function_arg_sorted[i - 1]])
         measure_at_a_ast = t_norm(to_be_tnormed)
         result += (function[function_arg_sorted[i]] - function[function_arg_sorted[i - 1]]) * measure_at_a_ast
@@ -17,41 +16,43 @@ def fuzzy_removal_choquet_integral(function, fuzzy_set, t_norm):
 
 # Optimized version when using the minimum as the t-norm
 def fuzzy_removal_choquet_integral_min(function, fuzzy_set):
-    n = len(function)  # Cardinality of X
     function_arg_sorted = np.argsort(function)
     result = function[function_arg_sorted[0]]
     measure_at_a_ast = fuzzy_set[function_arg_sorted[0]]
     result += (function[function_arg_sorted[1]] - function[function_arg_sorted[0]]) * measure_at_a_ast
-    for i in range(2, n):
+    for i in range(2, len(function)):
         measure_at_a_ast = min(measure_at_a_ast, fuzzy_set[function_arg_sorted[i - 1]])
         result += (function[function_arg_sorted[i]] - function[function_arg_sorted[i - 1]]) * measure_at_a_ast
     return result
 
 
-# Calculates the choquet integral of "function"
-# with respect to a k-symmetric measure given in the form of a function given also the partition off indifference
+# Calculates the choquet integral of "function" give the partitions of indifference
+# with respect to a k-symmetric measure given in the form of a function (see Proposition 3.5.)
 def k_symmetric_choquet_integral(function, partition, measure):
-    # Cardinality of X
-    n = len(function)
-    # Number of sets of indifference
-    k = len(partition)
-
     function_arg_sorted = np.argsort(function)
     result = function[function_arg_sorted[0]]
-    for i in range(1, n):
-        a_ast = function_arg_sorted[i:]
-        # Vector containing a_1,\dots, a_k
-        a = np.zeros(k)
-        for j in range(k):
-            a_j = partition[j]
-            a[j] = len([t for t in a_ast if t in a_j])
+    a_ast = list(function_arg_sorted)
+
+    # Initializing the vector containing a_1,\dots, a_k
+    a = [len(partition[i]) for i in range(len(partition))]
+
+    for i in range(1, len(function)):
+        removed_elt = a_ast.pop()  # The element x^\ast_{i-1}
+
+        # j is the partition (index) where removed_elt belongs to
+        j = 0
+        while removed_elt not in partition[j]:
+            j += 1
+
+        a[j] -= 1  # Updating the vector a
         measure_at_a_ast = measure(a)
         result += (function[function_arg_sorted[i]] - function[function_arg_sorted[i - 1]]) * measure_at_a_ast
     return result
 
 
-# Returns the partition of sets of indifference and the measure
-def two_symmetric_measure(outlier_labels, t, Q):
+# Returns the partition of sets of indifference and the measure for the two-symmetric measure
+# described in Section 3 Example 3 and 4
+def two_symmetric_measure(outlier_labels, t, quantifier):
     n = len(outlier_labels)
     outliers = []
     non_outliers = []
@@ -62,7 +63,7 @@ def two_symmetric_measure(outlier_labels, t, Q):
             non_outliers.append(i)
     partition = [non_outliers, outliers]
     k = len(non_outliers)
-    return partition, lambda a: Q((a[0] * ((1 - t) * (n / k) + t) + a[1] * t) / n)
+    return partition, lambda a: quantifier((a[0] * ((1 - t) * (n / k) + t) + a[1] * t) / n)
 
 
 def owa(array, quantifier):

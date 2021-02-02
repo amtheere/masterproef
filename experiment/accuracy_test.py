@@ -83,8 +83,8 @@ def accuracy_test(data, target, n_splits=5, stratified=False,
                 values_fuzzy_removal.append(fuzzy_removal_choquet_integral_min(to_be_aggregated, weights))
                 values_wowa.append(wowa_outlier(to_be_aggregated, quantifier, weights))
 
-                # partition, measure = two_symmetric_measure(labels, 0.3, quantifier)
-                # values_two_sym.append(k_symmetric_choquet_integral(to_be_aggregated, partition, measure))
+                partition, measure = two_symmetric_measure(labels, 0.3, quantifier)
+                values_two_sym.append(k_symmetric_choquet_integral(to_be_aggregated, partition, measure))
 
             # Classifies it to the class for which it has the greatest lower approximation value
             pred_min.append(np.argmax(values_min))
@@ -94,7 +94,7 @@ def accuracy_test(data, target, n_splits=5, stratified=False,
             pred_avg_without_outliers.append(np.argmax(values_avg_without_outliers))
             pred_min_without_outliers.append(np.argmax(values_min_without_outliers))
             pred_fuzzy_removal.append(np.argmax(values_fuzzy_removal))
-            # pred_two_sym.append(np.argmax(values_two_sym))
+            pred_two_sym.append(np.argmax(values_two_sym))
             pred_wowa.append(np.argmax(values_wowa))
 
         if balanced:
@@ -118,7 +118,7 @@ def accuracy_test(data, target, n_splits=5, stratified=False,
             accuracy_rates_avg_without_outliers.append(metrics.accuracy_score(test_y, pred_avg_without_outliers))
             accuracy_rates_min_without_outliers.append(metrics.accuracy_score(test_y, pred_min_without_outliers))
             accuracy_rates_fuzzy_removal.append(metrics.accuracy_score(test_y, pred_fuzzy_removal))
-            # accuracy_rates_two_sym.append(metrics.accuracy_score(test_y, pred_two_sym))
+            accuracy_rates_two_sym.append(metrics.accuracy_score(test_y, pred_two_sym))
             accuracy_rates_wowa.append(metrics.accuracy_score(test_y, pred_wowa))
 
     results = [accuracy_rates_min, accuracy_rates_avg,
