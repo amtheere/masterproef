@@ -20,10 +20,10 @@ def fuzzy_removal_choquet_integral_min(function, fuzzy_set):
     n = len(function)  # Cardinality of X
     function_arg_sorted = np.argsort(function)
     result = function[function_arg_sorted[0]]
-    to_be_tnormed = []
-    for i in range(1, n):
-        to_be_tnormed.append(fuzzy_set[function_arg_sorted[i - 1]])
-        measure_at_a_ast = np.amin(to_be_tnormed)
+    measure_at_a_ast = fuzzy_set[function_arg_sorted[0]]
+    result += (function[function_arg_sorted[1]] - function[function_arg_sorted[0]]) * measure_at_a_ast
+    for i in range(2, n):
+        measure_at_a_ast = min(measure_at_a_ast, fuzzy_set[function_arg_sorted[i - 1]])
         result += (function[function_arg_sorted[i]] - function[function_arg_sorted[i - 1]]) * measure_at_a_ast
     return result
 

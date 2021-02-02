@@ -80,7 +80,7 @@ def accuracy_test(data, target, n_splits=5, stratified=False,
                 values_min_without_outliers.append(np.amin(to_be_aggregated_without_outliers))
                 values_avg_without_outliers.append(np.average(to_be_aggregated_without_outliers))
                 values_owa_without_outliers.append(owa(to_be_aggregated_without_outliers, quantifier))
-                values_fuzzy_removal.append(fuzzy_removal_choquet_integral(to_be_aggregated, weights, np.amin))
+                values_fuzzy_removal.append(fuzzy_removal_choquet_integral_min(to_be_aggregated, weights))
                 values_wowa.append(wowa_outlier(to_be_aggregated, quantifier, weights))
 
                 # partition, measure = two_symmetric_measure(labels, 0.3, quantifier)
