@@ -8,15 +8,19 @@ from aggregation_elements import aggregation_elements, lof_score
 # Library for outlier detection
 from pyod.models.lof import LOF
 
+from latextable import draw_latex
+from texttable import Texttable
 
-def accuracy_test(data, target, n_splits=5, stratified=False,
+
+def accuracy_test(data, target, dataset_name, n_splits=5, stratified=False,
                   outlierScoreAlgorithm=LOF(), balanced=False):
     # Sets up the cross-validation
+    seed = 7
     if stratified:
-        kf = StratifiedKFold(n_splits=n_splits, shuffle=True)
+        kf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
         kf = kf.split(data, target)
     else:
-        kf = KFold(n_splits=n_splits, shuffle=True)
+        kf = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
         kf = kf.split(data)
 
     # Stores the accuracy rates of all of the folds
@@ -74,12 +78,19 @@ def accuracy_test(data, target, n_splits=5, stratified=False,
                                                                          outlier_labels, standard_deviations)
                 to_be_aggregated_without_outliers = [k for j, k in enumerate(to_be_aggregated) if labels[j] == 0]
 
+                def add_quantifier(t):
+                    return additive_quantifier(t, len(to_be_aggregated))
+
+                def add_quantifier_without_outliers(t):
+                    return additive_quantifier(t, len(to_be_aggregated_without_outliers))
+
                 values_min.append(np.amin(to_be_aggregated))
                 values_avg.append(np.average(to_be_aggregated))
-                values_owa.append(owa(to_be_aggregated, quantifier))
+                values_owa.append(owa(to_be_aggregated, add_quantifier))
                 values_min_without_outliers.append(np.amin(to_be_aggregated_without_outliers))
                 values_avg_without_outliers.append(np.average(to_be_aggregated_without_outliers))
-                values_owa_without_outliers.append(owa(to_be_aggregated_without_outliers, quantifier))
+                values_owa_without_outliers.append(owa(to_be_aggregated_without_outliers,
+                                                       add_quantifier_without_outliers))
                 values_fuzzy_removal.append(fuzzy_removal_choquet_integral_min(to_be_aggregated, weights))
                 values_wowa.append(wowa_outlier(to_be_aggregated, quantifier, weights))
 
@@ -130,13 +141,11 @@ def accuracy_test(data, target, n_splits=5, stratified=False,
     accuracy = []
     for i in range(len(results)):
         accuracy.append(np.average(results[i]))
-    print("Min: " + str(accuracy[0]))
-    print("Avg: " + str(accuracy[1]))
-    print("OWA: " + str(accuracy[2]))
-    print("Min without outliers: " + str(accuracy[3]))
-    print("Avg without outliers: " + str(accuracy[4]))
-    print("OWA without outliers: " + str(accuracy[5]))
-    print("Fuzzy removal: " + str(accuracy[6]))
-    print("Two symmetric: " + str(accuracy[7]))
-    print("WOWA: " + str(accuracy[8]))
+
+    table = Texttable()
+    table.add_rows([["Dataset", "Min", "Avg", "OWA", "Mino", "Avgo", "OWAo", "FR", "TS", "WOWA"],
+                   [dataset_name, accuracy[0], accuracy[1], accuracy[2], accuracy[3], accuracy[4],
+                    accuracy[5], accuracy[6], accuracy[7], accuracy[8]]])
+    print(table.draw() + "\n")
+    print(draw_latex(table) + "\n")
     return accuracy

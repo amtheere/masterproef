@@ -5,6 +5,8 @@ import numpy as np
 # R_a(x,y) for a quantitative attribute with index "feature_index"
 # sd_a is the standard deviation of the attribute
 def fuzzy_relation_a(x, y, sd_a, feature_index):
+    if sd_a == 0:
+        return 1
     a_x = x[feature_index]
     a_y = y[feature_index]
     return np.maximum(0, np.minimum((a_y - a_x + sd_a) / sd_a, (a_x - a_y + sd_a) / sd_a))

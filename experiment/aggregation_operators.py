@@ -97,6 +97,12 @@ def wowa_outlier(array, quantifier, outlier_values):
     return wowa(array, quantifier, po)
 
 
+# The quantifier that is needed for the additive OWA weighting scheme.
+# Returns Q(x) and n is the length of the array that has to be aggregated
+def additive_quantifier(x, n):
+    return (x * (x * n + 1)) / (n + 1)
+
+
 def vague_quantifier(x, alpha, beta):
     if x <= alpha:
         return 0
