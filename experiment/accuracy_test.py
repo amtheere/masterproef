@@ -3,17 +3,14 @@ from tqdm import tqdm
 from sklearn import metrics
 
 from aggregation_operators import *
-from aggregation_elements import aggregation_elements, lof_score
+from aggregation_elements import aggregation_elements, outlier_score, exp_trans
 
 # Library for outlier detection
 from pyod.models.lof import LOF
 
-from latextable import draw_latex
-from texttable import Texttable
-
 
 def accuracy_test(data, target, dataset_name, n_splits=5, stratified=False,
-                  outlierScoreAlgorithm=LOF(), balanced=False):
+                  outlierScoreAlgorithm=LOF(), balanced=False, b=0.75):
     # Sets up the cross-validation
     seed = 7
     if stratified:
@@ -44,7 +41,7 @@ def accuracy_test(data, target, dataset_name, n_splits=5, stratified=False,
         test_y = np.array([target[i] for i in test_index])
         number_of_classes = len(set(train_y))
 
-        outlier_values, outlier_labels = lof_score(train_x, train_y, outlierScoreAlgorithm)
+        outlier_values, outlier_labels = outlier_score(train_x, train_y, outlierScoreAlgorithm)
         standard_deviations = np.std(train_x, axis=0)
 
         # predictions for the test instances
@@ -91,7 +88,8 @@ def accuracy_test(data, target, dataset_name, n_splits=5, stratified=False,
                 values_avg_without_outliers.append(np.average(to_be_aggregated_without_outliers))
                 values_owa_without_outliers.append(owa(to_be_aggregated_without_outliers,
                                                        add_quantifier_without_outliers))
-                values_fuzzy_removal.append(fuzzy_removal_choquet_integral_min(to_be_aggregated, weights))
+                values_fuzzy_removal.append(fuzzy_removal_choquet_integral_min(to_be_aggregated,
+                                                                               exp_trans(weights, b)))
                 values_wowa.append(wowa_outlier(to_be_aggregated, quantifier, weights))
 
                 partition, measure = two_symmetric_measure(labels, 0.3, quantifier)
@@ -141,11 +139,5 @@ def accuracy_test(data, target, dataset_name, n_splits=5, stratified=False,
     accuracy = []
     for i in range(len(results)):
         accuracy.append(np.average(results[i]))
-
-    table = Texttable()
-    table.add_rows([["Dataset", "Min", "Avg", "OWA", "Mino", "Avgo", "OWAo", "FR", "TS", "WOWA"],
-                   [dataset_name, accuracy[0], accuracy[1], accuracy[2], accuracy[3], accuracy[4],
-                    accuracy[5], accuracy[6], accuracy[7], accuracy[8]]])
-    print(table.draw() + "\n")
-    print(draw_latex(table) + "\n")
-    return accuracy
+    return [dataset_name, accuracy[0], accuracy[1], accuracy[2], accuracy[3], accuracy[4],
+            accuracy[5], accuracy[6], accuracy[7], accuracy[8]]

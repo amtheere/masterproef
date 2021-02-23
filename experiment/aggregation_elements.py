@@ -25,7 +25,7 @@ def fuzzy_relation(x, y, standard_deviations):
 # LOF algorithm for outlier score
 # https://pyod.readthedocs.io/en/latest/index.html
 # Calculates the within class outliers and returns the outlier values (scores) and labels
-def lof_score(x_train, y_train, algorithm=LOF(), method="unify"):
+def outlier_score(x_train, y_train, algorithm=LOF(), method="unify"):
     number_of_instances = len(x_train)
     outlier_values = np.zeros(number_of_instances)
     outlier_labels = np.zeros(number_of_instances)
@@ -56,3 +56,7 @@ def aggregation_elements(x, train_x, train_y, class_index, outlier_values, outli
             weights.append(outlier_values[i])
             labels.append(outlier_labels[i])
     return to_be_aggregated, weights, labels
+
+
+def exp_trans(array, b):
+    return list(map(lambda x: ((((1 - b) / b) ** 2) ** x - 1) / (((1 - b) / b) ** 2 - 1), array))
