@@ -1,4 +1,4 @@
-from accuracy_test import accuracy_test
+from accuracy_test import accuracy_test_cv
 import pandas as pd
 import numpy as np
 import os as os
@@ -24,8 +24,8 @@ for file in datasets:
     dataset = dataframe.to_numpy()
     TARGET = dataset[:, 0].astype(int)
     DATA = dataset[:, 1:].astype(float)
-    result = accuracy_test(DATA, TARGET, n_splits=10, stratified=True, balanced=True, dataset_name=dataset_name,
-                           outlierScoreAlgorithm=IForest())
+    result = accuracy_test_cv(DATA, TARGET, n_splits=10, stratified=True, balanced=True, dataset_name=dataset_name,
+                              outlierScoreAlgorithm=IForest())
     table.add_row(result)
     mean_accuracy += result[1:]
 mean_accuracy = list(mean_accuracy / len(datasets))
