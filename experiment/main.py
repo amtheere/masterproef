@@ -4,12 +4,11 @@ import numpy as np
 import os as os
 from texttable import Texttable
 from latextable import draw_latex
-from pyod.models.iforest import IForest
 
 dataset_location = "datasets/datasets2/"
 datasets = os.listdir(dataset_location)
 datasets.sort()
-mean_accuracy = np.zeros(9)
+benchmark_results = []
 table = Texttable()
 table.add_row(["Dataset", "Min", "Avg", "OWA", "Mino", "Avgo", "OWAo", "FR", "TS", "WOWA"])
 datasets = datasets
@@ -24,12 +23,13 @@ for file in datasets:
     dataset = dataframe.to_numpy()
     TARGET = dataset[:, 0].astype(int)
     DATA = dataset[:, 1:].astype(float)
-    result = accuracy_test_cv(DATA, TARGET, n_splits=10, stratified=True, balanced=True, dataset_name=dataset_name,
-                              outlierScoreAlgorithm=IForest())
+    result = accuracy_test_cv(DATA, TARGET, n_splits=5, stratified=True, balanced=True, dataset_name=dataset_name)
     table.add_row(result)
-    mean_accuracy += result[1:]
-mean_accuracy = list(mean_accuracy / len(datasets))
+    benchmark_results.append(result[1:])
+np.savetxt("benchmark_results_5.csv", benchmark_results, delimiter=", ")
+mean_accuracy = list(np.mean(benchmark_results, axis=0))
 mean_accuracy.insert(0, "Average")
 table.add_row(mean_accuracy)
 print(table.draw() + "\n")
 print(draw_latex(table) + "\n")
+
