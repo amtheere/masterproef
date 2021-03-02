@@ -26,10 +26,9 @@ for file in datasets:
     result = accuracy_test_cv(DATA, TARGET, n_splits=5, stratified=True, balanced=True, dataset_name=dataset_name)
     table.add_row(result)
     benchmark_results.append(result[1:])
-np.savetxt("benchmark_results_5.csv", benchmark_results, delimiter=", ")
+np.savetxt("benchmark_results_all_additivetransf_5cv.csv", benchmark_results, delimiter=", ")
 mean_accuracy = list(np.mean(benchmark_results, axis=0))
 mean_accuracy.insert(0, "Average")
 table.add_row(mean_accuracy)
 print(table.draw() + "\n")
 print(draw_latex(table) + "\n")
-

@@ -110,6 +110,7 @@ def accuracy_test(train_x, train_y, test_x, test_y,
             def add_quantifier_without_outliers(t):
                 return additive_quantifier(t, len(to_be_aggregated_without_outliers))
 
+            weights = exp_trans(weights, b)
             values_min.append(np.amin(to_be_aggregated))
             values_avg.append(np.average(to_be_aggregated))
             values_owa.append(owa(to_be_aggregated, add_quantifier))
@@ -118,10 +119,10 @@ def accuracy_test(train_x, train_y, test_x, test_y,
             values_owa_without_outliers.append(owa(to_be_aggregated_without_outliers,
                                                    add_quantifier_without_outliers))
             values_fuzzy_removal.append(fuzzy_removal_choquet_integral_min(to_be_aggregated,
-                                                                           exp_trans(weights, b)))
-            values_wowa.append(wowa_outlier(to_be_aggregated, quantifier, weights))
+                                                                           weights))
+            values_wowa.append(wowa_outlier(to_be_aggregated, add_quantifier, weights))
 
-            partition, measure = two_symmetric_measure(labels, 0.3, quantifier)
+            partition, measure = two_symmetric_measure(labels, 0.3, add_quantifier)
             values_two_sym.append(k_symmetric_choquet_integral(to_be_aggregated, partition, measure))
 
         # Classifies it to the class for which it has the greatest lower approximation value
