@@ -31,15 +31,12 @@ def accuracy_test_cv(data, target, dataset_name, n_splits=5, stratified=False,
     accuracy_rates_two_sym = []
     accuracy_rates_wowa = []
 
-    def quantifier(t):
-        return vague_quantifier(t, 0.2, 1)
-
     for train_index, test_index in kf:
         train_x = np.array([data[i] for i in train_index])
         train_y = np.array([target[i] for i in train_index])
         test_x = np.array([data[i] for i in test_index])
         test_y = np.array([target[i] for i in test_index])
-        result = accuracy_test(train_x, train_y, test_x, test_y, quantifier, outlierScoreAlgorithm,
+        result = accuracy_test(train_x, train_y, test_x, test_y, outlierScoreAlgorithm,
                                balanced, b)
         accuracy_rates_min.append(result[0])
         accuracy_rates_avg.append(result[1])
@@ -51,11 +48,11 @@ def accuracy_test_cv(data, target, dataset_name, n_splits=5, stratified=False,
         accuracy_rates_two_sym.append(result[7])
         accuracy_rates_wowa.append(result[8])
 
-    results = [accuracy_rates_min, accuracy_rates_avg,
-               accuracy_rates_owa, accuracy_rates_min_without_outliers,
-               accuracy_rates_avg_without_outliers, accuracy_rates_owa_without_outliers,
-               accuracy_rates_fuzzy_removal,
-               accuracy_rates_two_sym,
+    results = [accuracy_rates_min, accuracy_rates_min_without_outliers,
+               accuracy_rates_fuzzy_removal, accuracy_rates_avg,
+               accuracy_rates_avg_without_outliers, accuracy_rates_two_sym,
+               accuracy_rates_owa,
+               accuracy_rates_owa_without_outliers,
                accuracy_rates_wowa]
     accuracy = []
     for i in range(len(results)):
@@ -65,7 +62,6 @@ def accuracy_test_cv(data, target, dataset_name, n_splits=5, stratified=False,
 
 
 def accuracy_test(train_x, train_y, test_x, test_y,
-                  quantifier=lambda t: vague_quantifier(t, 0.2, 1),
                   outlierScoreAlgorithm=LOF(contamination=0.1), balanced=False, b=0.75):
     accuracy = []
     number_of_classes = len(set(train_y))
