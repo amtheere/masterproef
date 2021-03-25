@@ -97,6 +97,10 @@ def wowa_outlier(array, quantifier, outlier_values):
     return wowa(array, quantifier, po)
 
 
+def additive_owa(array):
+    return owa(array, lambda x: additive_quantifier(x, len(array)))
+
+
 # The quantifier that is needed for the additive OWA weighting scheme.
 # Returns Q(x) and n is the length of the array that has to be aggregated
 def additive_quantifier(x, n):
@@ -112,3 +116,13 @@ def vague_quantifier(x, alpha, beta):
         return 1 - (2 * (x - beta) ** 2) / (beta - alpha) ** 2
     else:
         return 1
+
+
+def t_norm_luka(array):
+    n = len(array)
+    som = np.sum(array)
+    result = som - n + 1
+    if result >= 0:
+        return result
+    else:
+        return 0

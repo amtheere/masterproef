@@ -4,7 +4,6 @@ from sklearn import metrics
 
 from aggregation_operators import *
 from aggregation_elements import aggregation_elements, outlier_score, exp_trans
-
 # Library for outlier detection
 from pyod.models.lof import LOF
 
@@ -39,13 +38,13 @@ def accuracy_test_cv(data, target, dataset_name, n_splits=5, stratified=False,
         result = accuracy_test(train_x, train_y, test_x, test_y, outlierScoreAlgorithm,
                                balanced, b)
         accuracy_rates_min.append(result[0])
-        accuracy_rates_avg.append(result[1])
-        accuracy_rates_owa.append(result[2])
-        accuracy_rates_owa_without_outliers.append(result[3])
+        accuracy_rates_min_without_outliers.append(result[1])
+        accuracy_rates_fuzzy_removal.append(result[2])
+        accuracy_rates_avg.append(result[3])
         accuracy_rates_avg_without_outliers.append(result[4])
-        accuracy_rates_min_without_outliers.append(result[5])
-        accuracy_rates_fuzzy_removal.append(result[6])
-        accuracy_rates_two_sym.append(result[7])
+        accuracy_rates_two_sym.append(result[5])
+        accuracy_rates_owa.append(result[6])
+        accuracy_rates_owa_without_outliers.append(result[7])
         accuracy_rates_wowa.append(result[8])
 
     results = [accuracy_rates_min, accuracy_rates_min_without_outliers,
@@ -114,8 +113,7 @@ def accuracy_test(train_x, train_y, test_x, test_y,
             values_avg_without_outliers.append(np.average(to_be_aggregated_without_outliers))
             values_owa_without_outliers.append(owa(to_be_aggregated_without_outliers,
                                                    add_quantifier_without_outliers))
-            values_fuzzy_removal.append(fuzzy_removal_choquet_integral_min(to_be_aggregated,
-                                                                           weights))
+            values_fuzzy_removal.append(fuzzy_removal_choquet_integral_min(to_be_aggregated, weights))
             values_wowa.append(wowa_outlier(to_be_aggregated, add_quantifier, weights))
 
             partition, measure = two_symmetric_measure(labels, 0.3, add_quantifier)
@@ -134,25 +132,25 @@ def accuracy_test(train_x, train_y, test_x, test_y,
 
     if balanced:
         accuracy.append(metrics.balanced_accuracy_score(test_y, pred_min))
-        accuracy.append(metrics.balanced_accuracy_score(test_y, pred_avg))
-        accuracy.append(metrics.balanced_accuracy_score(test_y, pred_owa))
+        accuracy.append(metrics.balanced_accuracy_score(test_y, pred_min_without_outliers))
+        accuracy.append(metrics.balanced_accuracy_score(test_y, pred_fuzzy_removal))
         accuracy.append(
-            metrics.balanced_accuracy_score(test_y, pred_owa_without_outliers))
+            metrics.balanced_accuracy_score(test_y, pred_avg))
         accuracy.append(
             metrics.balanced_accuracy_score(test_y, pred_avg_without_outliers))
         accuracy.append(
-            metrics.balanced_accuracy_score(test_y, pred_min_without_outliers))
-        accuracy.append(metrics.balanced_accuracy_score(test_y, pred_fuzzy_removal))
-        accuracy.append(metrics.balanced_accuracy_score(test_y, pred_two_sym))
+            metrics.balanced_accuracy_score(test_y, pred_two_sym))
+        accuracy.append(metrics.balanced_accuracy_score(test_y, pred_owa))
+        accuracy.append(metrics.balanced_accuracy_score(test_y, pred_owa_without_outliers))
         accuracy.append(metrics.balanced_accuracy_score(test_y, pred_wowa))
     else:
         accuracy.append(metrics.accuracy_score(test_y, pred_min))
-        accuracy.append(metrics.accuracy_score(test_y, pred_avg))
-        accuracy.append(metrics.accuracy_score(test_y, pred_owa))
-        accuracy.append(metrics.accuracy_score(test_y, pred_owa_without_outliers))
-        accuracy.append(metrics.accuracy_score(test_y, pred_avg_without_outliers))
         accuracy.append(metrics.accuracy_score(test_y, pred_min_without_outliers))
         accuracy.append(metrics.accuracy_score(test_y, pred_fuzzy_removal))
+        accuracy.append(metrics.accuracy_score(test_y, pred_avg))
+        accuracy.append(metrics.accuracy_score(test_y, pred_avg_without_outliers))
         accuracy.append(metrics.accuracy_score(test_y, pred_two_sym))
+        accuracy.append(metrics.accuracy_score(test_y, pred_owa))
+        accuracy.append(metrics.accuracy_score(test_y, pred_owa_without_outliers))
         accuracy.append(metrics.accuracy_score(test_y, pred_wowa))
     return accuracy

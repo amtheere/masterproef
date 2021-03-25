@@ -15,8 +15,8 @@ TS = benchmark_results[:, 5]
 OWA = benchmark_results[:, 6]
 OWAo = benchmark_results[:, 7]
 WOWA = benchmark_results[:, 8]
-print(stats.wilcoxon(WOWA, avgo, alternative="greater"))
-pc = posthocs.posthoc_wilcoxon([mini, mino, FR, avg, avgo, TS, OWA, OWAo, WOWA])
+print(stats.wilcoxon(WOWA, avgo, alternative="two-sided"))
+pc = posthocs.posthoc_wilcoxon([mini, mino, FR, avg, avgo, TS, OWA, OWAo, WOWA], zero_method="pratt")
 annotations = np.round(pd.DataFrame.to_numpy(pc), 2)
 
 

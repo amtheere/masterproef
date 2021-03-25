@@ -26,7 +26,9 @@ for file in datasets:
     result = accuracy_test_cv(DATA, TARGET, n_splits=5, stratified=True, balanced=True, dataset_name=dataset_name)
     table.add_row(result)
     benchmark_results.append(result[1:])
-# np.savetxt("benchmark_results.csv", benchmark_results, delimiter=", ")
+'''
+np.savetxt("benchmark_results.csv", benchmark_results, delimiter=", ")
+'''
 mean_accuracy = list(np.mean(benchmark_results, axis=0))
 mean_accuracy.insert(0, "Average")
 median_accuracy = list(np.median(benchmark_results, axis=0))
