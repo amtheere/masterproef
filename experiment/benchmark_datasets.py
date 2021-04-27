@@ -6,12 +6,12 @@ from texttable import Texttable
 from latextable import draw_latex
 
 dataset_location = "datasets/datasets2/"
+print(os.getcwd())
 datasets = os.listdir(dataset_location)
 datasets.sort()
 benchmark_results = []
 table = Texttable()
 table.add_row(["Dataset", "Min", "Mino", "FR", "Avg", "Avgo", "TS", "OWA", "OWAo", "WOWA"])
-datasets = datasets
 for file in datasets:
     file = dataset_location + file
     dataset_name = file[file.rfind("/") + 1:][:-4]

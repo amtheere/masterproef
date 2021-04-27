@@ -35,11 +35,11 @@ median_accuracy_outliers = []
 start = 0.1
 steps = 12
 step_size = 0.1
-step = [0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9, 1.2, 1.5, 2, 2.5, 3.5, 4]
-parameter_name = "alpha_2"
+step = [0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3, 1.5, 1.8, 2.1, 2.4, 2.7, 3, 3.4, 3.8, 4]
+parameter_name = "alpha_1"
 if __name__ == "__main__":
     for k in range(len(step)):
-        alpha_2 = -step[k]
+        alpha_1 = step[k]
         results_normal = []
         results_outlier = []
         results = []
