@@ -6,7 +6,6 @@ from texttable import Texttable
 from latextable import draw_latex
 
 dataset_location = "datasets/datasets2/"
-print(os.getcwd())
 datasets = os.listdir(dataset_location)
 datasets.sort()
 benchmark_results = []

@@ -32,14 +32,14 @@ table.add_row(["Summary", "Min", "Mino", "FR", "Avg", "Avgo", "TS", "OWA", "OWAo
 median_accuracy = []
 median_accuracy_outliers = []
 
-start = 0.1
-steps = 12
+start = 0.5
+steps = 16
 step_size = 0.1
 step = [0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3, 1.5, 1.8, 2.1, 2.4, 2.7, 3, 3.4, 3.8, 4]
-parameter_name = "alpha_1"
+parameter_name = "omega_2"
 if __name__ == "__main__":
-    for k in range(len(step)):
-        alpha_1 = step[k]
+    for k in range(steps):
+        omega_2 = start + k*step_size
         results_normal = []
         results_outlier = []
         results = []
@@ -64,7 +64,7 @@ if __name__ == "__main__":
             x_test = np.concatenate((class_1_test, class_2_test))
             y_test = np.append(np.zeros(samples_class_1), np.ones(samples_class_2)).astype(int)
             acc_normal = accuracy_test(x_train, y_train, x_test, y_test,
-                                       outlierScoreAlgorithm=LOF(contamination=ratio_outlier_1))
+                                       outlierScoreAlgorithm=LOF(contamination=0.23))
             results_normal.append(acc_normal)
 
             normal_class_1 = np.random.normal(mean_class_1[1], var_class_1[1], samples_class_1_outliers)
@@ -76,7 +76,7 @@ if __name__ == "__main__":
             x_test = np.concatenate((class_1_outliers_test, class_2_outliers_test))
             y_test = np.append(np.zeros(samples_class_1_outliers), np.ones(samples_class_2_outliers)).astype(int)
             acc_outliers = accuracy_test(x_train, y_train, x_test, y_test,
-                                         outlierScoreAlgorithm=LOF(contamination=ratio_outlier_1))
+                                         outlierScoreAlgorithm=LOF(contamination=0.23))
             results_outlier.append(acc_outliers)
             acc = [(samples_normal * x + samples_outliers * y) / (2 * test_samples_per_class)
                    for (x, y) in zip(acc_normal, acc_outliers)]
@@ -94,7 +94,7 @@ if __name__ == "__main__":
                            ncol=2,
                            fontsize=8)
                 plt.axis([-4, 4, -1, 1])
-                plt.savefig("plots/"+parameter_name+"_plots/train/"+str(step[k])+".png")
+                plt.savefig("plots/"+parameter_name+"_plots/train/"+str(start+k*step_size)+".png")
                 plt.clf()
                 cl1 = plt.scatter(class_1_test[:, 0], class_1_test[:, 1], c="blue")
                 cl1_o = plt.scatter(class_1_outliers_test[:, 0], class_1_outliers_test[:, 1], c="purple", marker="<")
@@ -107,10 +107,11 @@ if __name__ == "__main__":
                            ncol=2,
                            fontsize=8)
                 plt.axis([-4, 4, -1, 1])
-                plt.savefig("plots/"+parameter_name+"_plots/test/"+str(step[k])+".png")
+                plt.savefig("plots/"+parameter_name+"_plots/test/"+str(start+k*step_size)+".png")
                 plt.clf()
 
             '''
+            start+k*step_size
             maximum = np.amax(acc_outliers)
             for j in range(9):
                 if acc_outliers[j] == maximum:
@@ -126,14 +127,14 @@ if __name__ == "__main__":
         median_accuracy.append(list(np.median(results, axis=0)))
         results = list(np.median(results, axis=0))
         results.insert(0, "Median")
-        results.append(start+k*step_size)
+        results.append(start + k*step_size)
         # times_the_best.insert(0, "times the best")
         # mean_accuracy_outliers = list(np.mean(results_outlier, axis=0))
         # mean_accuracy_outliers.insert(0, "Average")
         median_accuracy_outliers.append(list(np.median(results_outlier, axis=0)))
         results_outliers = list(np.median(results_outlier, axis=0))
         results_outliers.insert(0, "Median")
-        results_outliers.append(start+k*step_size)
+        results_outliers.append(start + k*step_size)
         # times_the_best_outliers.insert(0, "times the best")
         # table.add_row(mean_accuracy)
         table.add_row(results)
@@ -141,7 +142,6 @@ if __name__ == "__main__":
         # table.add_row(mean_accuracy_outliers)
         table.add_row(results_outliers)
         # table.add_row(times_the_best_outliers)
-    x = [start + k * step_size for k in range(steps)]
     median_accuracy = np.array(median_accuracy)
     median_accuracy_outliers = np.array(median_accuracy_outliers)
     np.savetxt("results_synth/median_"+parameter_name+".csv", median_accuracy, delimiter=", ")

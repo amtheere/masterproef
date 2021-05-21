@@ -32,14 +32,18 @@ for file in datasets:
     table_accuracy.add_row(accuracy)
     print(accuracy)
     table_algo_best.add_row(algorithm_best)
-    print(algorithm_used)
+    print(algorithm_best)
     table_algo_used.add_row(algorithm_used)
+    print(algorithm_used)
     benchmark_result.append(accuracy[1])
 
 mean_accuracy = ["Average", np.average(benchmark_result)]
 median_accuracy = ["Median", np.median(benchmark_result)]
 table_accuracy.add_row(mean_accuracy)
 table_accuracy.add_row(median_accuracy)
+benchmark_results = np.loadtxt("benchmark_results.csv", delimiter=", ")
+benchmark_results = np.insert(benchmark_results, 0, benchmark_result, axis=1)
+np.savetxt("benchmark_results_COMB.csv", benchmark_results, delimiter=", ")
 print(table_accuracy.draw() + "\n")
 print(draw_latex(table_accuracy) + "\n")
 print(table_algo_used.draw() + "\n")

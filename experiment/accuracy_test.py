@@ -30,7 +30,7 @@ def accuracy_test(train_x, train_y, test_x, test_y,
     pred_two_sym = []
     pred_wowa = []
 
-    for x in test_x:
+    for x in tqdm(test_x):
 
         # Arrays that contain the value of x for a certain lower approximator
         values_min = []
@@ -256,44 +256,122 @@ def accuracy_test_combine_algo_cv(data, target, dataset_name, n_splits=5, strati
 
 def choose_best_algo(train_x, train_y, outlierScoreAlgorithm=LOF(contamination=0.1), balanced=False, b=0.75):
     loocv = LeaveOneOut()
-    loocv = loocv.split(train_x, train_y)
+    loocv = loocv.split(train_x)
 
-    # Stores the accuracy rates of all of the folds
-    accuracy_rates_min = []
-    accuracy_rates_avg = []
-    accuracy_rates_owa = []
-    accuracy_rates_owa_without_outliers = []
-    accuracy_rates_avg_without_outliers = []
-    accuracy_rates_min_without_outliers = []
-    accuracy_rates_fuzzy_removal = []
-    accuracy_rates_two_sym = []
-    accuracy_rates_wowa = []
+    # predictions for each instance based on the rest of the dataset
+    pred_min = []
+    pred_fuzzy_removal = []
+    pred_owa = []
+    pred_owa_without_outliers = []
+    pred_wowa = []
+    pred_two_sym = []
 
-    for train_index, test_index in loocv:
+    """
+    pred_avg = []
+    pred_avg_without_outliers = []
+    pred_min_without_outliers = []
+    """
+
+    true_y = train_y
+
+    for train_index, test_index in tqdm(loocv):
         train_data = np.array([train_x[i] for i in train_index])
         train_target = np.array([train_y[i] for i in train_index])
         test_x = np.array([train_x[i] for i in test_index])
-        test_y = np.array([train_y[i] for i in test_index])
-        result = accuracy_test(train_data, train_target, test_x, test_y, outlierScoreAlgorithm,
-                               balanced, b)
-        accuracy_rates_min.append(result[0])
-        accuracy_rates_min_without_outliers.append(result[1])
-        accuracy_rates_fuzzy_removal.append(result[2])
-        accuracy_rates_avg.append(result[3])
-        accuracy_rates_avg_without_outliers.append(result[4])
-        accuracy_rates_two_sym.append(result[5])
-        accuracy_rates_owa.append(result[6])
-        accuracy_rates_owa_without_outliers.append(result[7])
-        accuracy_rates_wowa.append(result[8])
 
-    results = [accuracy_rates_min, accuracy_rates_min_without_outliers,
-               accuracy_rates_fuzzy_removal, accuracy_rates_avg,
-               accuracy_rates_avg_without_outliers, accuracy_rates_two_sym,
-               accuracy_rates_owa,
-               accuracy_rates_owa_without_outliers,
-               accuracy_rates_wowa]
+        number_of_classes = len(set(train_target))
+
+        outlier_values, outlier_labels = outlier_score(train_data, train_target, outlierScoreAlgorithm)
+        standard_deviations = np.std(train_x, axis=0)
+
+        # Arrays that contain the value of x for a certain lower approximator
+        values_min = []
+        values_fuzzy_removal = []
+        values_owa = []
+        values_owa_without_outliers = []
+        values_wowa = []
+        values_two_sym = []
+
+        """
+        values_avg = []
+        values_avg_without_outliers = []
+        values_min_without_outliers = []
+        """
+
+        # Calculates the lower approximations to each class
+        for i in range(number_of_classes):
+            # weights are the outlier scores and labels the outlier labels
+            to_be_aggregated, weights, labels = aggregation_elements(test_x[0], train_data, train_target, i,
+                                                                     outlier_values,
+                                                                     outlier_labels, standard_deviations)
+            to_be_aggregated_without_outliers = [k for j, k in enumerate(to_be_aggregated) if labels[j] == 0]
+
+            def add_quantifier(t):
+                return additive_quantifier(t, len(to_be_aggregated))
+
+            def add_quantifier_without_outliers(t):
+                return additive_quantifier(t, len(to_be_aggregated_without_outliers))
+
+            weights = exp_trans(weights, b)
+            values_min.append(np.amin(to_be_aggregated))
+            values_fuzzy_removal.append(fuzzy_removal_choquet_integral_min(to_be_aggregated, weights))
+            values_owa.append(owa(to_be_aggregated, add_quantifier))
+            values_owa_without_outliers.append(owa(to_be_aggregated_without_outliers,
+                                                   add_quantifier_without_outliers))
+            values_wowa.append(wowa_outlier(to_be_aggregated, add_quantifier, weights))
+            partition, measure = two_symmetric_measure(labels, 0.3, add_quantifier)
+            values_two_sym.append(k_symmetric_choquet_integral(to_be_aggregated, partition, measure))
+
+            """
+            values_avg.append(np.average(to_be_aggregated))
+            values_min_without_outliers.append(np.amin(to_be_aggregated_without_outliers))
+            values_avg_without_outliers.append(np.average(to_be_aggregated_without_outliers))
+            """
+
+        # Classifies it to the class for which it has the greatest lower approximation value
+        pred_min.append(np.argmax(values_min))
+        pred_fuzzy_removal.append(np.argmax(values_fuzzy_removal))
+        pred_owa.append(np.argmax(values_owa))
+        pred_owa_without_outliers.append(np.argmax(values_owa_without_outliers))
+        pred_wowa.append(np.argmax(values_wowa))
+        pred_two_sym.append(np.argmax(values_two_sym))
+
+        """
+        pred_avg.append(np.argmax(values_avg))
+        pred_avg_without_outliers.append(np.argmax(values_avg_without_outliers))
+        pred_min_without_outliers.append(np.argmax(values_min_without_outliers))
+        """
+
     accuracy = []
-    for i in range(len(results)):
-        accuracy.append(np.average(results[i]))
+    if balanced:
+        accuracy.append(metrics.balanced_accuracy_score(true_y, pred_min))
+        # accuracy.append(metrics.balanced_accuracy_score(true_y, pred_min_without_outliers))
+        accuracy.append(0)
+        accuracy.append(metrics.balanced_accuracy_score(true_y, pred_fuzzy_removal))
+        accuracy.append(0)
+        accuracy.append(0)
+        # accuracy.append(
+        #     metrics.balanced_accuracy_score(true_y, pred_avg))
+        # accuracy.append(
+        #     metrics.balanced_accuracy_score(true_y, pred_avg_without_outliers))
+        accuracy.append(
+             metrics.balanced_accuracy_score(true_y, pred_two_sym))
+        accuracy.append(metrics.balanced_accuracy_score(true_y, pred_owa))
+        accuracy.append(metrics.balanced_accuracy_score(true_y, pred_owa_without_outliers))
+        accuracy.append(metrics.balanced_accuracy_score(true_y, pred_wowa))
+    else:
+        accuracy.append(metrics.accuracy_score(true_y, pred_min))
+        # accuracy.append(metrics.accuracy_score(true_y, pred_min_without_outliers))
+        accuracy.append(0)
+        accuracy.append(metrics.accuracy_score(true_y, pred_fuzzy_removal))
+        accuracy.append(0)
+        accuracy.append(0)
+        # accuracy.append(metrics.accuracy_score(true_y, pred_avg))
+        # accuracy.append(metrics.accuracy_score(true_y, pred_avg_without_outliers))
+        accuracy.append(metrics.accuracy_score(true_y, pred_two_sym))
+        accuracy.append(metrics.accuracy_score(true_y, pred_owa))
+        accuracy.append(metrics.accuracy_score(true_y, pred_owa_without_outliers))
+        accuracy.append(metrics.accuracy_score(true_y, pred_wowa))
+
     best_indices = np.argwhere(accuracy == np.amax(accuracy)).flatten().tolist()
     return best_indices
